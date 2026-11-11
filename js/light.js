@@ -1,10 +1,10 @@
 // The low-resolution canvas every scene draws into, and the darkness over it.
-// Scenes draw in the logical 360 x 640 space; this scales it down to 240 x 427.
+// Scenes draw in the logical 360 x 640 space, at full size.
 
 import { W } from './scenery.js';
 
-export const LOW_W = 240;
-export const LOW_H = 427;
+export const LOW_W = 360;
+export const LOW_H = 640;
 export const K = LOW_W / W;
 
 export const scene = document.createElement('canvas');

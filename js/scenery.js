@@ -157,54 +157,64 @@ export function opening(ctx, cx, t, { glow = 0.5, open = 0 } = {}) {
 
 export function lamp(ctx, x, y, s, { on = true, color = [255, 236, 200] } = {}) {
   const h = 150 * s;
-  ctx.fillStyle = '#1a1210';
-  ctx.fillRect(x - 10 * s, y - 3 * s, 20 * s, 3 * s);
-  ctx.fillRect(x - 1.2 * s, y - h, 2.4 * s, h);
+  // base and brass pole, with a bright edge down one side
+  ctx.fillStyle = '#5a4424';
+  ctx.beginPath(); ctx.ellipse(x, y - 1.5 * s, 11 * s, 3 * s, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#9c7a3e'; ctx.fillRect(x - 1.6 * s, y - h, 3.2 * s, h);
+  ctx.fillStyle = 'rgba(255,236,190,0.55)'; ctx.fillRect(x - 1.6 * s, y - h, 1 * s, h);
   // fabric shade
-  ctx.fillStyle = on ? `rgb(${color[0] * 0.9 | 0},${color[1] * 0.8 | 0},${color[2] * 0.62 | 0})` : '#3a2a22';
+  const c = on ? color : [90, 76, 64];
+  ctx.fillStyle = `rgb(${c[0] * 0.92 | 0},${c[1] * 0.84 | 0},${c[2] * 0.66 | 0})`;
   ctx.beginPath();
   ctx.moveTo(x - 10 * s, y - h - 2 * s); ctx.lineTo(x + 10 * s, y - h - 2 * s);
   ctx.lineTo(x + 18 * s, y - h + 20 * s); ctx.lineTo(x - 18 * s, y - h + 20 * s); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  ctx.fillRect(x - 18 * s, y - h + 17 * s, 36 * s, 3 * s);
+  ctx.strokeStyle = on ? 'rgba(255,250,235,0.7)' : 'rgba(200,190,170,0.35)'; ctx.lineWidth = Math.max(1, 0.8 * s);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(x - 18 * s, y - h + 17 * s, 36 * s, 3 * s);
   return { x, y: y - h + 10 * s };
 }
 
+// A pale upholstered chair on dark legs, outlined so it reads against the floor.
 // variant: 'front', 'back', 'side', 'upside'
 export function chair(ctx, x, y, s, variant = 'front') {
   ctx.save();
   ctx.translate(x, y);
-  if (variant === 'upside') { ctx.translate(0, -60 * s); ctx.scale(1, -1); }
-  const wood = '#3b2416', dark = '#22140c';
-  const seatY = -26 * s, seatW = 26 * s;
-  const legs = () => {
-    ctx.fillStyle = dark;
-    ctx.fillRect(-seatW / 2, seatY, 2.4 * s, 26 * s); ctx.fillRect(seatW / 2 - 2.4 * s, seatY, 2.4 * s, 26 * s);
+  if (variant === 'upside') { ctx.translate(0, -62 * s); ctx.scale(1, -1); }
+  const legC = '#2a1a10', cushion = '#d9cbb0', shade = '#a8977a', edge = 'rgba(255,248,230,0.75)';
+  const seatY = -24 * s, W2 = 15 * s;
+  const lw = Math.max(1, 0.9 * s);
+  const legs = (spread) => {
+    ctx.fillStyle = legC;
+    ctx.fillRect(-spread, seatY + 4 * s, 2.6 * s, 20 * s); ctx.fillRect(spread - 2.6 * s, seatY + 4 * s, 2.6 * s, 20 * s);
   };
-  const back = () => {
-    ctx.fillStyle = wood;
-    ctx.fillRect(-seatW / 2, seatY - 34 * s, 2.6 * s, 34 * s); ctx.fillRect(seatW / 2 - 2.6 * s, seatY - 34 * s, 2.6 * s, 34 * s);
-    ctx.fillRect(-seatW / 2, seatY - 34 * s, seatW, 5 * s); ctx.fillRect(-seatW / 2, seatY - 22 * s, seatW, 3 * s);
+  const box = (bx, by, bw, bh, fill) => {
+    ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 3 * s); ctx.fill();
+    ctx.strokeStyle = edge; ctx.lineWidth = lw; ctx.stroke();
   };
-  const seat = () => { ctx.fillStyle = '#4a2c1a'; ctx.fillRect(-seatW / 2 - 1 * s, seatY, seatW + 2 * s, 4 * s); };
   if (variant === 'side') {
-    ctx.fillStyle = dark;
-    ctx.fillRect(-11 * s, seatY, 2.4 * s, 26 * s); ctx.fillRect(9 * s, seatY, 2.4 * s, 26 * s);
-    ctx.fillStyle = '#4a2c1a'; ctx.fillRect(-12 * s, seatY, 24 * s, 4 * s);
-    ctx.fillStyle = wood; ctx.fillRect(9 * s, seatY - 36 * s, 3 * s, 36 * s);
+    legs(12 * s);
+    box(-13 * s, seatY, 26 * s, 6 * s, cushion);
+    box(8 * s, seatY - 34 * s, 6 * s, 36 * s, shade);
   } else if (variant === 'back') {
-    legs(); seat(); back();
+    legs(W2);
+    box(-W2, seatY, W2 * 2, 6 * s, shade);
+    box(-W2, seatY - 34 * s, W2 * 2, 36 * s, shade);
+    ctx.fillStyle = 'rgba(40,24,14,0.5)'; ctx.fillRect(-W2 + 4 * s, seatY - 28 * s, W2 * 2 - 8 * s, 2 * s);
   } else {
-    back(); legs(); seat();
+    box(-W2, seatY - 34 * s, W2 * 2, 32 * s, shade);
+    legs(W2);
+    box(-W2 - 1 * s, seatY, W2 * 2 + 2 * s, 7 * s, cushion);
+    box(-W2 + 3 * s, seatY - 30 * s, W2 * 2 - 6 * s, 24 * s, cushion);
   }
   ctx.restore();
 }
 
 export function table(ctx, x, y, s) {
-  ctx.fillStyle = '#22140c';
-  ctx.fillRect(x - 14 * s, y - 30 * s, 2.4 * s, 30 * s); ctx.fillRect(x + 12 * s, y - 30 * s, 2.4 * s, 30 * s);
-  ctx.fillStyle = '#3b2416'; ctx.fillRect(x - 17 * s, y - 33 * s, 34 * s, 4 * s);
-  return { x, y: y - 33 * s };
+  ctx.fillStyle = '#2a1a10';
+  ctx.fillRect(x - 14 * s, y - 30 * s, 2.6 * s, 30 * s); ctx.fillRect(x + 11.4 * s, y - 30 * s, 2.6 * s, 30 * s);
+  ctx.fillStyle = '#7a5434'; ctx.fillRect(x - 18 * s, y - 34 * s, 36 * s, 5 * s);
+  ctx.fillStyle = 'rgba(255,236,200,0.55)'; ctx.fillRect(x - 18 * s, y - 34 * s, 36 * s, Math.max(1, 0.9 * s));
+  return { x, y: y - 34 * s };
 }
 
 export function cassette(ctx, x, y, s, t, playing = true) {
@@ -277,14 +287,18 @@ export function picture(ctx, x, y, w, h, { upside = false, missing = false } = {
 }
 
 export function phone(ctx, x, y, s, { offHook = false } = {}) {
-  ctx.fillStyle = '#121010'; ctx.fillRect(x - 9 * s, y - 7 * s, 18 * s, 7 * s);
-  ctx.fillStyle = '#d6ccb4'; ctx.beginPath(); ctx.arc(x, y - 4 * s, 2.4 * s, 0, Math.PI * 2); ctx.fill();
+  const cream = '#ece2ca', edge = 'rgba(40,24,14,0.8)';
+  ctx.fillStyle = cream; ctx.beginPath(); ctx.roundRect(x - 10 * s, y - 8 * s, 20 * s, 8 * s, 2 * s); ctx.fill();
+  ctx.strokeStyle = edge; ctx.lineWidth = Math.max(1, 0.6 * s); ctx.stroke();
+  ctx.fillStyle = '#3a2a1e'; ctx.beginPath(); ctx.arc(x, y - 4 * s, 2.4 * s, 0, Math.PI * 2); ctx.fill();
   if (offHook) {
-    ctx.fillStyle = '#121010'; ctx.fillRect(x + 11 * s, y - 3 * s, 14 * s, 3 * s);
-    ctx.strokeStyle = '#121010'; ctx.lineWidth = 0.8 * s;
-    ctx.beginPath(); ctx.moveTo(x + 9 * s, y - 2 * s); ctx.quadraticCurveTo(x + 14 * s, y + 6 * s, x + 18 * s, y - 1 * s); ctx.stroke();
+    ctx.save(); ctx.translate(x + 18 * s, y - 2 * s); ctx.rotate(0.5);
+    ctx.fillStyle = cream; ctx.beginPath(); ctx.roundRect(-9 * s, -2 * s, 18 * s, 4 * s, 2 * s); ctx.fill(); ctx.stroke();
+    ctx.restore();
+    ctx.strokeStyle = cream; ctx.lineWidth = Math.max(1, 0.8 * s);
+    ctx.beginPath(); ctx.moveTo(x + 9 * s, y - 2 * s); ctx.quadraticCurveTo(x + 12 * s, y + 6 * s, x + 14 * s, y + 1 * s); ctx.stroke();
   } else {
-    ctx.fillStyle = '#121010'; ctx.fillRect(x - 11 * s, y - 11 * s, 22 * s, 4 * s);
+    ctx.fillStyle = cream; ctx.beginPath(); ctx.roundRect(x - 12 * s, y - 12 * s, 24 * s, 4.5 * s, 2 * s); ctx.fill(); ctx.stroke();
   }
 }
 

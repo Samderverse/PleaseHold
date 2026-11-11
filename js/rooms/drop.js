@@ -6,7 +6,7 @@ import * as L from '../light.js';
 
 const LAUNCH = { x: W / 2, y: 74 };
 const G = 700, SPEED = 540, R = 5;
-const BUCKET = { y: 606, w: 62 };
+const BUCKET = { y: 606, w: 84 };
 const rand = (a, b) => a + Math.random() * (b - a);
 
 export function generate(depth) {
@@ -19,12 +19,13 @@ export function generate(depth) {
       pegs.push({ x: x + rand(-3, 3), y: y + rand(-3, 3), kind: 'peg', hit: false, gone: false, flash: 0 });
     }
   }
-  const targets = Math.min(pegs.length - 2, 3 + Math.floor(depth * 0.8));
+  // 2 red bulbs in the first room, 5 by the last
+  const targets = Math.min(pegs.length - 2, 2 + Math.floor(depth / 2));
   const picks = pegs.slice().sort(() => Math.random() - 0.5);
   for (const p of picks.slice(0, targets)) p.kind = 'target';
   const pipes = [];
-  if (depth >= 4) {
-    for (let i = 0; i < Math.min(3, depth - 3); i++) {
+  if (depth >= 5) {
+    for (let i = 0; i < Math.min(2, depth - 4); i++) {
       pipes.push({ x: rand(40, W - 110), y: 220 + i * 110 + rand(-10, 10), w: 70, h: 8 });
     }
   }
@@ -95,7 +96,7 @@ export default {
   id: 'drop',
   start({ depth, run, dark }) {
     const { pegs, pipes } = generate(depth);
-    const shots = Math.max(2, 5 - (depth >= 5 ? 1 : 0) + run.mods.shots);
+    const shots = Math.max(3, 6 - (depth >= 6 ? 1 : 0) + run.mods.shots);
     return { pegs, pipes, shots, angle: 0, ball: null, t: 0, run, events: [], dark: dark ? 5 : 0, done: 0, failed: 0, shotT: 0, trail: [] };
   },
 
@@ -153,6 +154,8 @@ export default {
 
   timer(s) { return null; },
 
+  status(s) { return `RED ${s.pegs.filter((q) => q.kind === 'target' && !q.gone).length} · SHOTS ${s.shots}`; },
+
   draw(s, t) {
     const ctx = L.begin(0);
     room(ctx, t);
@@ -195,7 +198,7 @@ export default {
     }
 
     const flare = s.run.mods.light;
-    L.dark(s.dark > 0 ? 0.985 : 0.84 - flare * 0.15);
+    L.dark(s.dark > 0 ? 0.985 : 0.68 - flare * 0.15);
     if (s.dark <= 0) {
       // the launcher's lamp shines down the way it is pointing
       const a = -s.angle;
@@ -205,8 +208,8 @@ export default {
         m.lineTo(LAUNCH.x + Math.sin(-a + 0.45) * 420, LAUNCH.y + Math.cos(-a + 0.45) * 420);
         m.closePath();
       }, LAUNCH.x, LAUNCH.y, 330 * (1 + flare * 0.3), 0.85);
-      if (s.ball) L.hole(s.ball.x, s.ball.y, 90 * (1 + flare * 0.4), 0.95);
-      for (const p of s.pegs) if (!p.gone && p.kind === 'target') L.hole(p.x, p.y, 20, 0.5);
+      if (s.ball) L.hole(s.ball.x, s.ball.y, 110 * (1 + flare * 0.4), 0.95);
+      for (const p of s.pegs) if (!p.gone && p.kind === 'target') L.hole(p.x, p.y, 30, 0.6);
       for (const p of s.pegs) if (p.flash) L.hole(p.x, p.y, 40 * p.flash, 0.7);
       L.hole(bx, BUCKET.y, 46, 0.45);
     }

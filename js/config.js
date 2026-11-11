@@ -1,14 +1,30 @@
 // Please Hold: the game's data. No logic here.
 
-export const START_BULBS = 3;
+export const START_BULBS = 4;
 export const MAX_BULBS = 5;
 export const RUN_LENGTH = 7;   // rooms before the Last Curtain
 
 export const ROOM_TYPES = {
-  drop: { name: 'The Drop', card: 'THE DROP', hint: 'DRAG TO AIM · TAP TO FIRE' },
-  switchboard: { name: 'The Switchboard', card: 'SWITCHBOARD', hint: 'TAP A BULB · TURN THEM ALL OFF' },
-  wiring: { name: 'The Wiring', card: 'THE WIRING', hint: 'TAP A TILE TO TURN IT · POWER THE LAMP' },
-  same: { name: 'The Same Room', card: 'SAME ROOM', hint: 'LOOK · THEN SAY IF ANYTHING CHANGED' },
+  drop: {
+    name: 'The Drop', card: 'THE DROP', hint: 'BREAK EVERY RED BULB',
+    goal: 'Break every red bulb before your shots run out.',
+    how: 'Drag to swing the lamp, tap to fire. Studs you hit vanish after the shot. Land in the bucket to get the shot back.',
+  },
+  switchboard: {
+    name: 'The Switchboard', card: 'SWITCHBOARD', hint: 'TURN EVERY BULB OFF',
+    goal: 'Turn every bulb off before the lamp burns out.',
+    how: 'Tapping a bulb flips it and the four next to it. Tip: work from the top row down, tapping the bulb under each lit one.',
+  },
+  wiring: {
+    name: 'The Wiring', card: 'THE WIRING', hint: 'POWER THE LAMP',
+    goal: 'Get power from the plug to the lamp before the fuse burns down.',
+    how: 'Tap a lit tile to turn it. Only the bright tiles turn; the dim ones are dead wiring.',
+  },
+  same: {
+    name: 'The Same Room', card: 'SAME ROOM', hint: 'SAME, OR CHANGED?',
+    goal: 'Four right calls. Two wrong and you are out.',
+    how: 'Look at the room. The tape blinks. Then say whether anything changed. Some changes are only in the sound.',
+  },
 };
 
 // Every deal pairs a boon with a cost, and each can land in a different room.

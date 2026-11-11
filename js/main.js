@@ -26,6 +26,7 @@ const el = {
   dealSay: $('dealSay'), cards: $('cards'), dealBulbs: $('dealBulbs'), dealQueue: $('dealQueue'), refuse: $('refuse'),
   overTitle: $('overTitle'), overSay: $('overSay'), overStats: $('overStats'), overClock: $('overClock'), pauseClock: $('pauseClock'),
   best: $('best'), credits: $('credits'), pad: $('pad'), padLabel: $('padLabel'),
+  brief: $('brief'), briefRoom: $('briefRoom'), briefName: $('briefName'), briefGoal: $('briefGoal'), briefHow: $('briefHow'),
 };
 
 // ---------- settings ----------
@@ -109,6 +110,7 @@ function show(name) {
   if (name !== 'hub') { el.curtains.innerHTML = ''; el.keyBtn.hidden = true; }
   if (name !== 'room') { el.caption.textContent = ''; el.buttons.innerHTML = ''; lastUi = ''; }
   if (name !== 'room' && name !== 'hub' && name !== 'pause') pad('');
+  if (name !== 'room' && name !== 'pause') { el.brief.hidden = true; briefing = false; }
 }
 
 function bulbsHtml() {
@@ -182,7 +184,7 @@ function toHub(line) {
   hub.visits++;
   el.where.textContent = `THE WAITING ROOM · IN QUEUE ${String(R.queue(run)).padStart(2, '0')}`;
   if (R.atLastCurtain(run)) return lastCurtain();
-  hub.curtains = R.curtains(run);
+  hub.curtains = run.history.length === 0 ? ['drop', 'wiring'].sort(() => Math.random() - 0.5) : R.curtains(run);
   renderCurtains();
   pad('TAP A CURTAIN');
   const text = line || (run.firstVisit ? HOST.first : null);
@@ -239,11 +241,30 @@ async function enterRoom(type) {
     A.play('enter');
     el.where.textContent = `${ROOM_TYPES[type].name.toUpperCase()} · ROOM ${R.depth(run)}`;
     pad(ROOM_TYPES[type].hint);
+    brief(type);
   });
-  banner(ROOM_TYPES[type].name, `In queue ${String(R.queue(run)).padStart(2, '0')}`, 1300);
-  setTimeout(() => hostSays(HOST.rooms[type], 2600), 700);
   busy = false;
 }
+
+// The goal card: the room waits, clock stopped, until you tap to begin.
+let briefing = false;
+function brief(type) {
+  const t = ROOM_TYPES[type];
+  briefing = true;
+  el.briefRoom.textContent = `ROOM ${R.depth(run)} · IN QUEUE ${String(R.queue(run)).padStart(2, '0')}`;
+  el.briefName.textContent = t.name;
+  el.briefGoal.textContent = t.goal;
+  el.briefHow.textContent = t.how;
+  el.brief.hidden = false;
+}
+function begin() {
+  if (!briefing) return;
+  briefing = false;
+  el.brief.hidden = true;
+  A.play('select');
+  hostSays(HOST.rooms[roomType], 2600);
+}
+el.brief.addEventListener('click', begin);
 
 async function roomOver(result) {
   busy = true;
@@ -430,6 +451,7 @@ el.stage.addEventListener('pointerup', (e) => {
   if (!ptr || ptr.id !== e.pointerId) return;
   const tap = ptr.moved < 12 && performance.now() - ptr.t < 400;
   ptr = null;
+  if (tap && screen === 'room' && briefing) { begin(); return; }
   if (!tap) return;
   const p = fieldPoint(e.clientX, e.clientY);
   if (screen === 'hub' && hub.mode === 'last' && p) { lastTap(p.x, p.y); return; }
@@ -446,6 +468,7 @@ el.buttons.addEventListener('click', (e) => {
 
 const KEYMAP = { ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d: 'right', D: 'right', ' ': 'fire', ArrowUp: 'fire', s: 'same', S: 'same', c: 'changed', C: 'changed' };
 window.addEventListener('keydown', (e) => {
+  if (screen === 'room' && briefing && (e.key === ' ' || e.key === 'Enter')) { begin(); e.preventDefault(); return; }
   if (screen === 'room' && KEYMAP[e.key]) { input.keys[KEYMAP[e.key]] = true; e.preventDefault(); return; }
   if ((screen === 'room' || screen === 'hub') && (e.key === 'Escape' || e.key === 'p' || e.key === 'P')) { pause(); e.preventDefault(); return; }
   if (screen === 'pause' && (e.key === 'Escape' || e.key === 'p' || e.key === 'P')) { resume(); e.preventDefault(); return; }
@@ -492,10 +515,7 @@ el.title.addEventListener('pointerdown', () => { A.unlock(); }, { once: true });
 let lastUi = '';
 function roomUi() {
   const ui = room.ui ? room.ui(rs) : null;
-  let status = '';
-  if (roomType === 'drop') status = `SHOTS ${rs.shots}`;
-  else if (ui) status = ui.status;
-  el.status.textContent = status;
+  el.status.textContent = room.status ? room.status(rs) : '';
   const key = JSON.stringify(ui ? [ui.caption, ui.buttons] : null);
   if (key === lastUi) return;
   lastUi = key;
@@ -511,7 +531,7 @@ function frame(now) {
   let img;
 
   if (screen === 'room' || (screen === 'pause' && paused === 'room')) {
-    if (screen === 'room' && !busy) {
+    if (screen === 'room' && !busy && !briefing) {
       run.time += dt; tape += dt;
       const res = room.update(rs, dt, input);
       for (const ev of rs.events) {
@@ -525,6 +545,7 @@ function frame(now) {
       if (res !== 'playing') roomOver(res);
       roomUi();
     }
+    if (briefing) roomUi();
     img = room.draw(rs, now / 1000, { reduce: settings.reduce });
   } else {
     if (screen === 'hub') { run.time += dt; tape = Math.max(0, tape - dt); }
@@ -540,7 +561,8 @@ function frame(now) {
   }
   A.tick(dt, { drips: screen === 'room' && roomType === 'same', live: screen !== 'pause' });
   const g = Math.min(1, glitch + (rs && screen === 'room' ? rs.glitch || 0 : 0) + (screen === 'over' ? 0.12 : 0));
-  fx.draw(img, { time: now / 1000, glitch: g, soft: settings.reduce });
+  const softTape = settings.reduce || (screen === 'room' && rs && rs.soft);
+  fx.draw(img, { time: now / 1000, glitch: g, soft: softTape });
   requestAnimationFrame(frame);
 }
 

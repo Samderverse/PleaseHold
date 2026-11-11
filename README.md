@@ -4,17 +4,17 @@ A found-footage puzzle game in a waiting room behind a red curtain. You are numb
 
 ## Play
 - In the Waiting Room, tap a curtain. Every room behind one is a different game.
-- Fail a room and a bulb pops. Lose all three and you are cut off.
+- Fail a room and a bulb pops. Lose all four and you are cut off.
 - Clear seven rooms to reach the front of the queue, then find what is wrong in the Waiting Room itself.
 - Between rooms the Host offers deals. Each one has a cost.
 
-On phones the game sits at the top with a touch pad below. Desktop: mouse to aim and click, arrow keys and Space in the Drop, S and C in the Same Room, 1 to 3 to pick curtains and deals, P or Esc to pause.
+Each room opens with a card giving its goal; tap to begin, and the clock only starts then. On phones the game sits at the top with a touch pad below. Desktop: mouse to aim and click, arrow keys and Space in the Drop, S and C in the Same Room, 1 to 3 to pick curtains and deals, P or Esc to pause.
 
 ## The rooms
 - **The Drop:** aim the lamp, fire a ball into the dark, break every red bulb. Land in the bucket to get the shot back.
 - **The Switchboard:** Lights Out. Tapping a bulb flips it and its neighbours. Turn them all off before the lamp burns out.
-- **The Wiring:** turn tiles to carry power from the socket to the lamp before the fuse burns down.
-- **The Same Room:** look, the tape blinks, then say if anything changed. Some changes are only in the sound.
+- **The Wiring:** turn the bright tiles to carry power from the plug to the lamp before the fuse burns down. Dim tiles are dead wiring.
+- **The Same Room:** look, the tape blinks, then say if anything changed. Four right calls clears it; two wrong and you are out. Some changes are only in the sound.
 - **The Last Curtain:** after seven rooms, one thing in the Waiting Room is wrong. Tap it to leave.
 
 ## Files

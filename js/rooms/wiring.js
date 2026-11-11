@@ -33,9 +33,19 @@ export function generate(n) {
   const dist = reach(base, n, socket, true);
   let lampCell = n - 1, far = -1;
   for (let y = 0; y < n; y++) { const i = y * n + n - 1; if (dist[i] > far) { far = dist[i]; lampCell = i; } }
+  // the route: walk back along the wires from the lamp to the socket
+  const route = [lampCell];
+  for (let i = lampCell; i !== socket;) {
+    const x = i % n, y = Math.floor(i / n);
+    const prev = DIRS.map(([bit, dx, dy]) => ((base[i] & bit) ? (y + dy) * n + x + dx : -1)).find((j) => j >= 0 && dist[j] === dist[i] - 1);
+    route.push(prev); i = prev;
+  }
+  // only tiles on the route are scrambled; the rest stay put as dead wiring
+  const onRoute = new Array(size).fill(false);
+  for (const i of route) onRoute[i] = true;
   let rot;
-  do { rot = base.map(() => Math.floor(Math.random() * 4)); } while (connected(base.map((m, i) => rotate(m, rot[i])), n, socket, lampCell));
-  return { base, rot, socket, lamp: lampCell };
+  do { rot = base.map((_, i) => (onRoute[i] ? Math.floor(Math.random() * 4) : 0)); } while (connected(base.map((m, i) => rotate(m, rot[i])), n, socket, lampCell));
+  return { base, rot, socket, lamp: lampCell, onRoute };
 }
 
 // Distance from `from` along matching wires (-1 where power does not reach).
@@ -69,10 +79,10 @@ function layout(n) {
 export default {
   id: 'wiring',
   start({ depth, run, dark }) {
-    const n = depth <= 2 ? 4 : depth <= 5 ? 5 : 6;
+    const n = depth <= 3 ? 4 : 5;
     const p = generate(n);
-    const total = timerSecs(run, 55 + n * 9);
-    return { n, ...p, total, left: total, t: 0, done: 0, warned: false, events: [], run, dark: dark ? 5 : 0, spin: new Array(n * n).fill(0) };
+    const total = timerSecs(run, 90 + n * 10);
+    return { n, ...p, total, left: total, t: 0, done: 0, warned: false, events: [], run, dark: dark ? 5 : 0, spin: new Array(n * n).fill(0), soft: true };
   },
 
   masks(s) { return s.base.map((m, i) => rotate(m, s.rot[i])); },
@@ -90,6 +100,7 @@ export default {
       const c = Math.floor((tap.x - g.x) / g.cell), r = Math.floor((tap.y - g.y) / g.cell);
       if (c < 0 || r < 0 || c >= s.n || r >= s.n) continue;
       const i = r * s.n + c;
+      if (!s.onRoute[i]) { s.events.push({ sfx: 'wall', x: tap.x }); continue; }
       s.rot[i] = (s.rot[i] + 1) % 4;
       s.spin[i] = 1;
       s.events.push({ sfx: 'turn', x: tap.x });
@@ -99,6 +110,8 @@ export default {
   },
 
   timer(s) { return 1 - s.left / s.total; },
+
+  status(s) { return s.done ? 'LAMP ON' : 'LAMP OFF'; },
 
   draw(s, t) {
     const ctx = L.begin(0);
@@ -132,16 +145,18 @@ export default {
     }
     for (let i = 0; i < n * n; i++) {
       const x = g.x + (i % n) * g.cell, y = g.y + Math.floor(i / n) * g.cell;
-      ctx.fillStyle = '#100a07'; ctx.fillRect(x + 1, y + 1, g.cell - 2, g.cell - 2);
+      const turns = s.onRoute[i];
+      ctx.fillStyle = turns ? '#2a1c12' : '#0a0604'; ctx.fillRect(x + 1, y + 1, g.cell - 2, g.cell - 2);
+      if (turns) { ctx.strokeStyle = 'rgba(240,200,140,0.35)'; ctx.lineWidth = 1; ctx.strokeRect(x + 2.5, y + 2.5, g.cell - 5, g.cell - 5); }
       const cx = x + g.cell / 2, cy = y + g.cell / 2;
       const on = live[i] >= 0;
       ctx.save(); ctx.translate(cx, cy); ctx.rotate(-s.spin[i] * Math.PI / 2);
-      ctx.strokeStyle = on ? '#f0b35a' : '#6a4a32';
+      ctx.strokeStyle = on ? '#f0b35a' : turns ? '#a87a52' : '#3a281c';
       ctx.lineWidth = g.cell * 0.16; ctx.lineCap = 'round';
       ctx.beginPath();
       for (const [bit, dx, dy] of DIRS) if (masks[i] & bit) { ctx.moveTo(0, 0); ctx.lineTo(dx * g.cell / 2, dy * g.cell / 2); }
       ctx.stroke();
-      ctx.fillStyle = on ? '#f0b35a' : '#6a4a32';
+      ctx.fillStyle = on ? '#f0b35a' : turns ? '#a87a52' : '#3a281c';
       ctx.beginPath(); ctx.arc(0, 0, g.cell * 0.1, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
       if (i === s.socket) { ctx.fillStyle = '#d9cfb4'; ctx.fillRect(cx - g.cell * 0.18, cy - g.cell * 0.14, g.cell * 0.36, g.cell * 0.28); ctx.fillStyle = '#1a1210'; ctx.fillRect(cx - g.cell * 0.08, cy - g.cell * 0.06, 2, 4); ctx.fillRect(cx + g.cell * 0.05, cy - g.cell * 0.06, 2, 4); }
@@ -151,7 +166,7 @@ export default {
     const lampX = g.x + (s.lamp % n + 0.5) * g.cell, lampY = g.y + (Math.floor(s.lamp / n) + 0.5) * g.cell;
     const sparkX = g.x + g.size * p;
     const flare = s.run.mods.light;
-    L.dark(s.dark > 0 ? 0.985 : (s.done ? 0.3 : 0.72 - flare * 0.12));
+    L.dark(s.dark > 0 ? 0.985 : (s.done ? 0.3 : 0.6 - flare * 0.12));
     if (s.dark <= 0) {
       L.hole(W / 2, g.y + g.size / 2, (g.size * 0.75) * (1 + flare * 0.25), 0.75);
       for (let i = 0; i < n * n; i++) if (live[i] >= 0) L.hole(g.x + (i % n + 0.5) * g.cell, g.y + (Math.floor(i / n) + 0.5) * g.cell, g.cell * 0.8, 0.45);

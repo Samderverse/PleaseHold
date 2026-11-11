@@ -12,7 +12,8 @@ export function generate(n, depth) {
   for (;;) {
     const board = new Array(size).fill(0);
     const solution = new Array(size).fill(0);
-    const k = Math.min(size - 1, Math.floor(size / 2) + Math.floor(depth / 2));
+    // few lit bulbs to start: 2 to 4 on a 3 x 3 board, 4 to 6 on a 4 x 4
+    const k = Math.min(size - 1, n === 3 ? 2 + Math.floor(depth / 2) : 4 + Math.floor((depth - 4) / 2));
     const cells = [...Array(size).keys()].sort(() => Math.random() - 0.5).slice(0, k);
     for (const i of cells) { press(board, n, i); solution[i] ^= 1; }
     if (board.some((v) => v)) return { board, solution };
@@ -34,10 +35,10 @@ function layout(n) {
 export default {
   id: 'switchboard',
   start({ depth, run, dark }) {
-    const n = depth <= 2 ? 3 : depth <= 5 ? 4 : 5;
+    const n = depth <= 4 ? 3 : 4;
     const { board, solution } = generate(n, depth);
-    const total = timerSecs(run, 70 + n * 6);
-    return { n, board, solution, total, left: total, t: 0, done: 0, warned: false, events: [], run, dark: dark ? 5 : 0, flash: new Array(n * n).fill(0) };
+    const total = timerSecs(run, 120);
+    return { n, board, solution, total, left: total, t: 0, done: 0, warned: false, events: [], run, dark: dark ? 5 : 0, flash: new Array(n * n).fill(0), soft: true };
   },
 
   update(s, dt, input) {
@@ -63,6 +64,8 @@ export default {
   },
 
   timer(s) { return 1 - s.left / s.total; },
+
+  status(s) { return `LIT ${s.board.filter((v) => v).length}`; },
 
   draw(s, t, opts) {
     const ctx = L.begin(0);

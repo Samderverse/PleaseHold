@@ -163,6 +163,20 @@ details.credits ul { margin: 1.6cqw 0 0; padding: 0; list-style: none; }
 #refuse { font-size: 5.4cqw; padding: 1.4cqw 2.4cqw; border: 1px solid rgba(236,228,208,0.35); color: var(--ink); }
 #refuse:hover, #refuse:focus-visible { background: var(--ink); color: var(--void); outline: none; }
 
+/* the goal card shown before each room */
+#brief {
+  position: absolute; left: 7cqw; right: 7cqw; top: 22%; z-index: 35; padding: 4cqw 5cqw 4.4cqw 7cqw;
+  background: var(--paper); color: #1d1511; text-align: left; font-family: var(--type); display: grid; gap: 2cqw;
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 6cqw, rgba(60,80,140,0.18) 6cqw, rgba(60,80,140,0.18) calc(6cqw + 1px));
+  box-shadow: 0 1.4cqw 0 rgba(0,0,0,0.55); transform: rotate(-0.8deg); cursor: pointer;
+}
+#brief[hidden] { display: none; }
+#brief::before { content: ""; position: absolute; left: 2.6cqw; top: 3cqw; bottom: 3cqw; width: 0.7cqw; background: rgba(140,15,22,0.55); }
+#brief .room { font-family: var(--osd); font-size: 4.4cqw; color: #6a4a3c; letter-spacing: 0.06em; }
+#brief h2 { margin: 0; font-family: var(--shout); font-weight: 400; font-size: 10cqw; line-height: 1; text-transform: uppercase; letter-spacing: 0.01em; color: #1d1511; }
+#brief .goal { margin: 0; font-size: 5cqw; line-height: 1.35; }
+#brief .how { margin: 0; font-size: 3.9cqw; line-height: 1.45; color: #4a3a30; }
+#brief .go { font-family: var(--osd); font-size: 5.4cqw; color: #8c0f16; letter-spacing: 0.1em; animation: blink 1.2s steps(1) infinite; }
 #pause, #over { justify-content: center; }
 #over h2, #pause h2 { margin: 0; font-family: var(--shout); font-weight: 400; font-size: 18cqw; line-height: 0.95; text-transform: uppercase; transform: skewX(-7deg) scaleY(1.15); transform-origin: left; }
 #over h2 { color: var(--led); text-shadow: 0.8cqw 0 rgba(255,220,200,0.25); }
@@ -194,6 +208,7 @@ details.credits ul { margin: 1.6cqw 0 0; padding: 0; list-style: none; }
     <div id="roomUi"><div id="caption"></div><div id="buttons"></div></div>
     <div id="host" aria-live="polite"><p></p></div>
     <div id="banner"></div>
+    <button id="brief" hidden><span class="room" id="briefRoom"></span><h2 id="briefName"></h2><p class="goal" id="briefGoal"></p><p class="how" id="briefHow"></p><span class="go">TAP TO BEGIN ▶</span></button>
     <div id="fade"></div>
 
     <section id="title" class="screen" aria-label="Title">
