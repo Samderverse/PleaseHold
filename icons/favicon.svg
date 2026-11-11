@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="f" x1="0" x2="1">
+      <stop offset="0" stop-color="#5a0a10"/><stop offset=".5" stop-color="#b3141c"/><stop offset="1" stop-color="#5a0a10"/>
+    </linearGradient>
+    <pattern id="c" width="16" height="16" patternUnits="userSpaceOnUse">
+      <rect width="16" height="16" fill="#120b0b"/><rect width="8" height="8" fill="#e6ddc8"/><rect x="8" y="8" width="8" height="8" fill="#e6ddc8"/>
+    </pattern>
+  </defs>
+  <rect width="64" height="64" rx="10" fill="#0b0607"/>
+  <rect x="0" y="0" width="16" height="44" fill="url(#f)"/><rect x="16" y="0" width="16" height="44" fill="url(#f)"/>
+  <rect x="32" y="0" width="16" height="44" fill="url(#f)"/><rect x="48" y="0" width="16" height="44" fill="url(#f)"/>
+  <rect x="0" y="44" width="64" height="20" fill="url(#c)"/>
+  <path d="M32 6 C24 20 22 32 22 44 H42 C42 32 40 20 32 6Z" fill="#2a1612"/>
+  <g transform="rotate(-14 32 24)">
+    <rect x="12" y="20" width="40" height="7" rx="3.5" fill="#ece2cc"/>
+    <rect x="8" y="21" width="15" height="12" rx="5" fill="#ece2cc"/>
+    <rect x="41" y="21" width="15" height="12" rx="5" fill="#ece2cc"/>
+  </g>
+</svg>
